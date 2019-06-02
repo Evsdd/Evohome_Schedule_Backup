@@ -2,7 +2,7 @@
 # Copyright (c) 2019 Evsdd 
 # Python 3.7
 # Requires pyserial module which can be installed using 'python -m pip install pyserial'
-# Prototype program to backup and restore schedules to the Evotouch controller
+# Prototype program to backup the complete schedule from the Evotouch controller
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
