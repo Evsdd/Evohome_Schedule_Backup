@@ -72,33 +72,38 @@ def msg_send_back(msg_type,msg_comm,msg_pay,msg_addr1='--:------',msg_addr2='--:
     j = 0  # retry counter
     RQ_zone = int(msg_pay[1:2], 16)
     while (resp == False):      
-       data = ComPort.readline().decode().replace("\x11","").rstrip() # Wait and read data      
-       if data:                         # Only proceed if line read before timeout
-         print(data)
-         msg_type = data[4:6]           # Extract message type
-         dev1 = data[11:20]             # Extract deviceID 1
-         dev2 = data[21:30]             # Extract deviceID 2
-         dev3 = data[31:40]             # Extract deviceID 3
-         cmnd = data[41:45]             # Extract command
-         RP_zone = int(data[51:52], 16) # Extract first 2 bytes of payload and convert to int
-         if (cmnd == '%04X' % msg_comm and dev1 == msg_addr2):  
-            resp = True
-            print("Send success!")
-            if RP_zone == RQ_zone:      
-              response = data[62:len(data)]
-            else:                       # if controller responds with different zone we've reached the zone limit
-              response = 'FF'
-         else:
-           if (j == 5): # retry 5 times
+       try:
+         data = ComPort.readline().decode().replace("\x11","").rstrip() # Wait and read data      
+       
+         if data:                         # Only proceed if line read before timeout
+           print(data)
+           msg_type = data[4:6]           # Extract message type
+           dev1 = data[11:20]             # Extract deviceID 1
+           dev2 = data[21:30]             # Extract deviceID 2
+           dev3 = data[31:40]             # Extract deviceID 3
+           cmnd = data[41:45]             # Extract command
+           RP_zone = int(data[51:52], 16) # Extract first 2 bytes of payload and convert to int
+           if (cmnd == '%04X' % msg_comm and dev1 == msg_addr2):  
              resp = True
-             print("Send failure!")
-             response = ''
+             print("Send success!")
+             if RP_zone == RQ_zone:      
+               response = data[62:len(data)]
+             else:                       # if controller responds with different zone we've reached the zone limit
+               response = 'FF'
            else:
-             if ((time.time() - send_time) > 1): # Wait 1sec before each re-send
-               j += 1
-               print('Re-send[{0:d}][{1:s}]'.format(j, send_data.decode().strip()))
-               No = ComPort.write(send_data) # re-send message
-               send_time = time.time()
+             if (j == 5): # retry 5 times
+               resp = True
+               print("Send failure!")
+               response = ''
+             else:
+               if ((time.time() - send_time) > 1): # Wait 1sec before each re-send
+                 j += 1
+                 print('Re-send[{0:d}][{1:s}]'.format(j, send_data.decode().strip()))
+                 No = ComPort.write(send_data) # re-send message
+                 send_time = time.time()
+       except Exception as e:
+         print('Error from getscheduleHGI80: ',e)
+         continue
   return response
              
 # decode zlib compressed payload
